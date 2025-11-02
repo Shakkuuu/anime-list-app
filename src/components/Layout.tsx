@@ -89,7 +89,7 @@ const Layout = () => {
                 <button onClick={logout}>ログアウト</button>
               </AuthInfo>
             ) : (
-              <NavLink to="/login">ログイン</NavLink>
+              <NavLink to="/login">管理者ログイン</NavLink>
             )}
           </Nav>
         </HeaderContent>
