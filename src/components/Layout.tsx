@@ -75,7 +75,7 @@ const Layout = () => {
     <Container>
       <Header>
         <HeaderContent>
-          <Logo>🎌 マイアニメリスト</Logo>
+          <Logo>🧲 Shakkuのアニメリスト</Logo>
           <Nav>
             <NavLink to="/" $active={location.pathname === '/'}>
               見た

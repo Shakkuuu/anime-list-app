@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import NotAdmin from './NotAdmin'
 import styled from 'styled-components'
 
 const Container = styled.div`
@@ -84,8 +85,13 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const { login } = useAuthStore()
+  const { login, isNotAdmin } = useAuthStore()
   const navigate = useNavigate()
+
+  // 管理者でない場合はNotAdminページを表示
+  if (isNotAdmin) {
+    return <NotAdmin />
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

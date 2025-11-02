@@ -5,6 +5,7 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import Watching from './pages/Watching'
 import Login from './pages/Login'
+import NotAdmin from './pages/NotAdmin'
 
 function App() {
   const { initializeAuth } = useAuthStore()
@@ -25,6 +26,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="watching" element={<Watching />} />
           <Route path="login" element={<Login />} />
+          <Route path="not-admin" element={<NotAdmin />} />
         </Route>
       </Routes>
     </Router>

@@ -8,10 +8,12 @@ interface AuthState {
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
+  isNotAdmin: boolean
   initializeAuth: () => Promise<void>
-  checkAdminStatus: () => Promise<void>
+  checkAdminStatus: () => Promise<boolean>
   login: (email: string) => Promise<void>
   logout: () => Promise<void>
+  clearNotAdmin: () => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -19,6 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   isAuthenticated: false,
   isAdmin: false,
+  isNotAdmin: false,
 
   initializeAuth: async () => {
     try {
@@ -61,7 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         set({ isAdmin: false })
-        return
+        return false
       }
 
       const response = await axios.get('/api/check-admin', {
@@ -75,15 +78,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       // 管理者でない場合はログアウト
       if (!isAdmin) {
         await supabase.auth.signOut()
-        set({ user: null, isAuthenticated: false, isAdmin: false })
-        return
+        set({ user: null, isAuthenticated: false, isAdmin: false, isNotAdmin: true })
+        return false
       }
 
       set({ isAdmin })
+      return true
     } catch (error) {
       console.error('Error checking admin status:', error)
       // チェックエラーの場合は管理者扱いしない
       set({ isAdmin: false })
+      return false
     }
   },
 
@@ -100,7 +105,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-    set({ user: null, isAuthenticated: false, isAdmin: false })
+    set({ user: null, isAuthenticated: false, isAdmin: false, isNotAdmin: false })
+  },
+
+  clearNotAdmin: () => {
+    set({ isNotAdmin: false })
   },
 }))
 

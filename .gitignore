@@ -27,3 +27,11 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+check-env.md
+README.md
+SETUP.md
+TROUBLESHOOTING.md
+ENV-SECURITY.md
+SECURITY.md
+supabase-admin-setup.sql
