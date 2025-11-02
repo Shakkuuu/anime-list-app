@@ -101,7 +101,6 @@ const RatingButton = styled.button<{ $active: boolean; $color: string }>`
 const AnimeCard = ({ anime }: { anime: Anime }) => {
   const { updateRating } = useAnimeStore()
   const { isAuthenticated } = useAuthStore()
-  const [isHovered, setIsHovered] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
   const handleRating = async (rating: RatingValue) => {
@@ -116,11 +115,10 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
     }
   }
 
+  const rating = anime.rating || null
+
   return (
-    <Card
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <Card>
       <ImageContainer>
         <Image
           src={anime.images.recommended_url || '/placeholder.png'}
@@ -129,8 +127,8 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
             (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"%3E%3Crect fill="%23e2e8f0" width="400" height="300"/%3E%3C/svg%3E'
           }}
         />
-        <RatingBadge $rating={anime.rating}>
-          {anime.rating === 'favorite' ? '👑 めちゃ好き' : anime.rating === 'recommended' ? '⭐ おすすめ' : ''}
+        <RatingBadge $rating={rating}>
+          {rating === 'favorite' ? '👑 めちゃ好き' : rating === 'recommended' ? '⭐ おすすめ' : ''}
         </RatingBadge>
       </ImageContainer>
       <Content>
@@ -139,16 +137,16 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
         {isAuthenticated && (
           <RatingButtons>
             <RatingButton
-              $active={anime.rating === 'favorite'}
+              $active={rating === 'favorite'}
               $color="#f59e0b"
-              onClick={() => handleRating(anime.rating === 'favorite' ? null : 'favorite')}
+              onClick={() => handleRating(rating === 'favorite' ? null : 'favorite')}
             >
               めちゃ好き
             </RatingButton>
             <RatingButton
-              $active={anime.rating === 'recommended'}
+              $active={rating === 'recommended'}
               $color="#06b6d4"
-              onClick={() => handleRating(anime.rating === 'recommended' ? null : 'recommended')}
+              onClick={() => handleRating(rating === 'recommended' ? null : 'recommended')}
             >
               おすすめ
             </RatingButton>
