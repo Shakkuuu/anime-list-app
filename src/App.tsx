@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import Watching from './pages/Watching'
 import Login from './pages/Login'
 import NotAdmin from './pages/NotAdmin'
+import NotFound from './pages/NotFound'
+import ServerError from './pages/ServerError'
 
 function App() {
   const { initializeAuth } = useAuthStore()
@@ -27,6 +29,8 @@ function App() {
           <Route path="watching" element={<Watching />} />
           <Route path="login" element={<Login />} />
           <Route path="not-admin" element={<NotAdmin />} />
+          <Route path="500" element={<ServerError />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </Router>
