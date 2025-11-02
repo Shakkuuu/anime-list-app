@@ -77,6 +77,7 @@ const Home = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         totalCount={filteredAndSortedAnimes.length}
+        itemsPerPage={ITEMS_PER_PAGE}
         availableSeasons={availableSeasons}
         onSortChange={setSortBy}
         onReverseToggle={() => setReverseSort(!reverseSort)}

@@ -67,6 +67,31 @@ const Main = styled.main`
   padding: 2rem;
 `
 
+const Footer = styled.footer`
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  margin-top: auto;
+`
+
+const FooterContent = styled.div`
+  max-width: 1400px;
+  margin: 0 auto;
+  font-size: 0.875rem;
+  color: #64748b;
+`
+
+const FooterLink = styled.a`
+  color: #6366f1;
+  text-decoration: none;
+  margin: 0 0.5rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`
+
 const Layout = () => {
   const { isAuthenticated, logout } = useAuthStore()
   const location = useLocation()
@@ -97,6 +122,11 @@ const Layout = () => {
       <Main>
         <Outlet />
       </Main>
+      <Footer>
+        <FooterContent>
+          このサイトは <FooterLink href="https://annict.com" target="_blank" rel="noopener noreferrer">Annict</FooterLink> を使用しています
+        </FooterContent>
+      </Footer>
     </Container>
   )
 }

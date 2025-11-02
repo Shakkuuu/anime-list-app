@@ -73,6 +73,7 @@ interface AnimeFiltersProps {
   currentPage: number
   totalPages: number
   totalCount: number
+  itemsPerPage: number
   availableSeasons: string[]
   onSortChange: (sort: SortOption) => void
   onReverseToggle: () => void
@@ -89,6 +90,7 @@ const AnimeFilters = ({
   currentPage,
   totalPages,
   totalCount,
+  itemsPerPage,
   availableSeasons,
   onSortChange,
   onReverseToggle,
@@ -96,6 +98,8 @@ const AnimeFilters = ({
   onSeasonChange,
   onPageChange,
 }: AnimeFiltersProps) => {
+  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1
+  const endItem = Math.min(currentPage * itemsPerPage, totalCount)
   return (
     <Controls>
       <div>
@@ -134,7 +138,7 @@ const AnimeFilters = ({
           次へ →
         </PageButton>
         <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-          {totalCount}件
+          {startItem}~{endItem}件 / {totalCount}件
         </span>
       </div>
     </Controls>

@@ -29,7 +29,6 @@ dist-ssr
 .env.production
 
 check-env.md
-README.md
 SETUP.md
 TROUBLESHOOTING.md
 ENV-SECURITY.md

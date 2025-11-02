@@ -37,8 +37,8 @@ const Image = styled.img`
 
 const RatingBadges = styled.div`
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
+  bottom: 0.5rem;
+  right: 0.5rem;
   display: flex;
   gap: 0.25rem;
 `
@@ -48,7 +48,7 @@ const RatingBadge = styled.div<{ $type: 'favorite' | 'recommended' }>`
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: ${props => props.$type === 'favorite' ? '#f59e0b' : '#06b6d4'};
+  background: ${props => props.$type === 'favorite' ? '#fbb6ce' : '#06b6d4'};
   color: white;
 `
 
@@ -133,7 +133,7 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
         )}
         {(anime.is_favorite || anime.is_recommended) && (
           <RatingBadges>
-            {anime.is_favorite && <RatingBadge $type="favorite">👑 めちゃ好き</RatingBadge>}
+            {anime.is_favorite && <RatingBadge $type="favorite">❤️ めちゃ好き</RatingBadge>}
             {anime.is_recommended && <RatingBadge $type="recommended">⭐ おすすめ</RatingBadge>}
           </RatingBadges>
         )}
