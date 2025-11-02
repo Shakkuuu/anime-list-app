@@ -41,6 +41,17 @@ export default async function handler(
       return res.status(401).json({ error: 'Invalid token' })
     }
 
+    // 管理者チェック
+    const { data: adminData, error: adminError } = await supabase
+      .from('admins')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (adminError || !adminData) {
+      return res.status(403).json({ error: 'Forbidden: Admin access required' })
+    }
+
     // 評価を Upsert
     const { error: upsertError } = await supabase
       .from('ratings')
