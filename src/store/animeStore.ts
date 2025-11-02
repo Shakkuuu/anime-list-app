@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import axios from 'axios'
 import { supabase } from '../lib/supabase'
-import type { Anime, AnimeStatus, RatingValue } from '../types'
+import type { Anime, AnimeStatus } from '../types'
 
 interface AnimeState {
   animes: Anime[]
   isLoading: boolean
   error: string | null
   fetchAnimes: (status: AnimeStatus) => Promise<void>
-  updateRating: (annictId: number, rating: RatingValue) => Promise<void>
+  updateRating: (annictId: number, isFavorite: boolean, isRecommended: boolean) => Promise<void>
 }
 
 export const useAnimeStore = create<AnimeState>((set, get) => ({
@@ -32,14 +32,15 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
     }
   },
 
-  updateRating: async (annictId: number, rating: RatingValue) => {
+  updateRating: async (annictId: number, isFavorite: boolean, isRecommended: boolean) => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Not authenticated')
 
       await axios.post('/api/rate', {
         annictId,
-        rating,
+        isFavorite,
+        isRecommended,
       }, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -50,7 +51,7 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
       const currentAnimes = get().animes || []
       set({
         animes: currentAnimes.map((anime) =>
-          anime.id === annictId ? { ...anime, rating } : anime
+          anime.id === annictId ? { ...anime, is_favorite: isFavorite, is_recommended: isRecommended } : anime
         ),
       })
     } catch (error) {

@@ -35,4 +35,5 @@ TROUBLESHOOTING.md
 ENV-SECURITY.md
 SECURITY.md
 supabase-admin-setup.sql
+migration-rating-to-boolean.sql
 SECURITY-AUDIT.md

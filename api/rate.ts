@@ -10,16 +10,16 @@ export default async function handler(
   }
 
   try {
-    const { annictId, rating } = req.body
+    const { annictId, isFavorite, isRecommended } = req.body
 
     // annictIdが数値であることを検証
     if (!annictId || typeof annictId !== 'number' || annictId < 1) {
       return res.status(400).json({ error: 'Invalid annictId' })
     }
 
-    // ratingが有効な値であることを検証
-    if (rating && !['favorite', 'recommended'].includes(rating)) {
-      return res.status(400).json({ error: 'Invalid rating' })
+    // isFavorite/isRecommendedがbooleanであることを検証
+    if (typeof isFavorite !== 'boolean' || typeof isRecommended !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid rating values' })
     }
 
     // JWT検証
@@ -63,7 +63,8 @@ export default async function handler(
       .from('ratings')
       .upsert({
         annict_id: annictId,
-        rating: rating || null,
+        is_favorite: isFavorite,
+        is_recommended: isRecommended,
         updated_at: new Date().toISOString(),
       })
 

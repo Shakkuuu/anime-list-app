@@ -62,16 +62,17 @@ export default async function handler(
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const { data: ratings } = await supabase
       .from('ratings')
-      .select('annict_id, rating')
+      .select('annict_id, is_favorite, is_recommended')
 
     const ratingsMap = new Map(
-      ratings?.map((r) => [r.annict_id, r.rating]) || []
+      ratings?.map((r) => [r.annict_id, { is_favorite: r.is_favorite, is_recommended: r.is_recommended }]) || []
     )
 
     // データをマージ
     const animes = allWorks.map((work: any) => {
       // Annictのimages構造を確認
       const imageUrl = work.images?.recommended_url || work.images?.facebook?.og_image_url || ''
+      const rating = ratingsMap.get(work.id)
 
       return {
         id: work.id,
@@ -82,7 +83,8 @@ export default async function handler(
         images: {
           recommended_url: imageUrl,
         },
-        rating: ratingsMap.get(work.id) || null,
+        is_favorite: rating?.is_favorite || false,
+        is_recommended: rating?.is_recommended || false,
       }
     })
 

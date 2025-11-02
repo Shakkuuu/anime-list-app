@@ -27,11 +27,11 @@ export const useAnimeFilters = (animes: Anime[]) => {
     // フィルタリング
     let filtered = animes
     if (filterBy === 'favorite') {
-      filtered = animes.filter(a => a.rating === 'favorite')
+      filtered = animes.filter(a => a.is_favorite)
     } else if (filterBy === 'recommended') {
-      filtered = animes.filter(a => a.rating === 'recommended')
+      filtered = animes.filter(a => a.is_recommended)
     } else if (filterBy === 'unrated') {
-      filtered = animes.filter(a => !a.rating)
+      filtered = animes.filter(a => !a.is_favorite && !a.is_recommended)
     }
 
     // クールでの絞り込み

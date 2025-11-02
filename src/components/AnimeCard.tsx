@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAnimeStore } from '../store/animeStore'
 import { useAuthStore } from '../store/authStore'
 import styled from 'styled-components'
-import type { Anime, RatingValue } from '../types'
+import type { Anime } from '../types'
 
 const Card = styled.div`
   background: white;
@@ -35,23 +35,21 @@ const Image = styled.img`
   object-fit: cover;
 `
 
-const RatingBadge = styled.div<{ $rating: RatingValue }>`
+const RatingBadges = styled.div`
   position: absolute;
   top: 0.5rem;
   left: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+`
+
+const RatingBadge = styled.div<{ $type: 'favorite' | 'recommended' }>`
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: ${props => {
-    switch (props.$rating) {
-      case 'favorite': return '#f59e0b'
-      case 'recommended': return '#06b6d4'
-      default: return 'transparent'
-    }
-  }};
+  background: ${props => props.$type === 'favorite' ? '#f59e0b' : '#06b6d4'};
   color: white;
-  display: ${props => props.$rating ? 'block' : 'none'};
 `
 
 const Content = styled.div`
@@ -104,19 +102,17 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [imageError, setImageError] = useState(false)
 
-  const handleRating = async (rating: RatingValue) => {
+  const handleRating = async (newIsFavorite: boolean, newIsRecommended: boolean) => {
     if (isUpdating) return
     setIsUpdating(true)
     try {
-      await updateRating(anime.id, rating)
+      await updateRating(anime.id, newIsFavorite, newIsRecommended)
     } catch (error) {
       console.error('Failed to update rating:', error)
     } finally {
       setIsUpdating(false)
     }
   }
-
-  const rating = anime.rating || null
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setImageError(true)
@@ -135,9 +131,12 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
             onError={handleImageError}
           />
         )}
-        <RatingBadge $rating={rating}>
-          {rating === 'favorite' ? '👑 めちゃ好き' : rating === 'recommended' ? '⭐ おすすめ' : ''}
-        </RatingBadge>
+        {(anime.is_favorite || anime.is_recommended) && (
+          <RatingBadges>
+            {anime.is_favorite && <RatingBadge $type="favorite">👑 めちゃ好き</RatingBadge>}
+            {anime.is_recommended && <RatingBadge $type="recommended">⭐ おすすめ</RatingBadge>}
+          </RatingBadges>
+        )}
       </ImageContainer>
       <Content>
         <Title>{anime.title}</Title>
@@ -145,16 +144,16 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
         {isAuthenticated && (
           <RatingButtons>
             <RatingButton
-              $active={rating === 'favorite'}
+              $active={anime.is_favorite}
               $color="#f59e0b"
-              onClick={() => handleRating(rating === 'favorite' ? null : 'favorite')}
+              onClick={() => handleRating(!anime.is_favorite, anime.is_recommended)}
             >
               めちゃ好き
             </RatingButton>
             <RatingButton
-              $active={rating === 'recommended'}
+              $active={anime.is_recommended}
               $color="#06b6d4"
-              onClick={() => handleRating(rating === 'recommended' ? null : 'recommended')}
+              onClick={() => handleRating(anime.is_favorite, !anime.is_recommended)}
             >
               おすすめ
             </RatingButton>

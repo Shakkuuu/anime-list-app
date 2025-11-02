@@ -1,5 +1,3 @@
-export type RatingValue = 'favorite' | 'recommended' | null
-
 export interface Anime {
   id: number
   title: string
@@ -9,7 +7,8 @@ export interface Anime {
   images: {
     recommended_url: string
   }
-  rating?: RatingValue
+  is_favorite: boolean
+  is_recommended: boolean
 }
 
 export interface AuthUser {
