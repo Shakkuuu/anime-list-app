@@ -63,17 +63,22 @@ export default async function handler(
     )
 
     // データをマージ
-    const animes = allWorks.map((work: any) => ({
-      id: work.id,
-      title: work.title,
-      season_name: work.season_name,
-      season_name_text: work.season_name_text,
-      released_on: work.released_on,
-      images: {
-        recommended_url: work.images?.recommended_url || '',
-      },
-      rating: ratingsMap.get(work.id) || null,
-    }))
+    const animes = allWorks.map((work: any) => {
+      // Annictのimages構造を確認
+      const imageUrl = work.images?.recommended_url || work.images?.facebook?.og_image_url || ''
+
+      return {
+        id: work.id,
+        title: work.title,
+        season_name: work.season_name,
+        season_name_text: work.season_name_text,
+        released_on: work.released_on,
+        images: {
+          recommended_url: imageUrl,
+        },
+        rating: ratingsMap.get(work.id) || null,
+      }
+    })
 
     return res.status(200).json({ animes })
   } catch (error: any) {

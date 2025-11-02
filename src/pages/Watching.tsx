@@ -91,7 +91,7 @@ const Error = styled.div`
   color: #ef4444;
 `
 
-type SortOption = 'recent' | 'title' | 'season'
+type SortOption = 'recent' | 'title'
 type FilterOption = 'all' | 'favorite' | 'recommended' | 'unrated'
 
 const ITEMS_PER_PAGE = 50
@@ -143,12 +143,6 @@ const Watching = () => {
     const sorted = [...filtered]
     if (sortBy === 'title') {
       sorted.sort((a, b) => a.title.localeCompare(b.title, 'ja'))
-    } else if (sortBy === 'season') {
-      sorted.sort((a, b) => {
-        const seasonA = a.season_name || a.season_name_text || ''
-        const seasonB = b.season_name || b.season_name_text || ''
-        return seasonB.localeCompare(seasonA, 'ja')
-      })
     }
     // 'recent' の場合は既にAnnictから降順で取得されているのでそのまま
 
@@ -188,11 +182,10 @@ const Watching = () => {
           <Select id="sort" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)}>
             <option value="recent">放送時期順</option>
             <option value="title">タイトル順</option>
-            <option value="season">クール順</option>
           </Select>
         </div>
         <ReverseButton onClick={() => setReverseSort(!reverseSort)}>
-          {reverseSort ? '🔄 逆順' : '⬇️ 順'}
+          {reverseSort ? '降順' : '昇順'}
         </ReverseButton>
         <div>
           <label htmlFor="filter">評価: </label>

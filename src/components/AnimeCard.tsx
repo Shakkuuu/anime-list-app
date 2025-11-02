@@ -102,6 +102,7 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
   const { updateRating } = useAnimeStore()
   const { isAuthenticated } = useAuthStore()
   const [isUpdating, setIsUpdating] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const handleRating = async (rating: RatingValue) => {
     if (isUpdating) return
@@ -117,16 +118,23 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
 
   const rating = anime.rating || null
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    setImageError(true)
+    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"%3E%3Crect fill="%23e2e8f0" width="400" height="300"/%3E%3C/svg%3E'
+  }
+
   return (
     <Card>
       <ImageContainer>
-        <Image
-          src={anime.images.recommended_url || '/placeholder.png'}
-          alt={anime.title}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"%3E%3Crect fill="%23e2e8f0" width="400" height="300"/%3E%3C/svg%3E'
-          }}
-        />
+        {!imageError && (
+          <Image
+            src={anime.images.recommended_url || ''}
+            alt={anime.title}
+            loading="lazy"
+            decoding="async"
+            onError={handleImageError}
+          />
+        )}
         <RatingBadge $rating={rating}>
           {rating === 'favorite' ? '👑 めちゃ好き' : rating === 'recommended' ? '⭐ おすすめ' : ''}
         </RatingBadge>
