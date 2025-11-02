@@ -19,3 +19,9 @@ export interface AuthUser {
 
 export type AnimeStatus = 'watched' | 'watching'
 
+export interface Season {
+  year: string
+  name: string
+  label: string
+}
+

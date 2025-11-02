@@ -30,6 +30,49 @@ const Select = styled.select`
   }
 `
 
+const ReverseButton = styled.button`
+  padding: 0.5rem 1rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: #4f46e5;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`
+
+const PageButton = styled.button`
+  padding: 0.5rem 1rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: #4f46e5;
+  }
+
+  &:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+`
+
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -51,14 +94,29 @@ const Error = styled.div`
 type SortOption = 'recent' | 'title' | 'season'
 type FilterOption = 'all' | 'favorite' | 'recommended' | 'unrated'
 
+const ITEMS_PER_PAGE = 50
+
 const Watching = () => {
   const { animes, isLoading, error, fetchAnimes } = useAnimeStore()
   const [sortBy, setSortBy] = useState<SortOption>('recent')
+  const [reverseSort, setReverseSort] = useState(false)
   const [filterBy, setFilterBy] = useState<FilterOption>('all')
+  const [filterSeason, setFilterSeason] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetchAnimes('watching')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const availableSeasons = useMemo(() => {
+    if (!animes || animes.length === 0) return []
+    const seasons = new Set<string>()
+    animes.forEach(a => {
+      const season = a.season_name_text || a.season_name || ''
+      if (season) seasons.add(season)
+    })
+    return Array.from(seasons).sort().reverse()
+  }, [animes])
 
   const filteredAndSortedAnimes = useMemo(() => {
     if (!animes || animes.length === 0) return []
@@ -71,6 +129,14 @@ const Watching = () => {
       filtered = animes.filter(a => a.rating === 'recommended')
     } else if (filterBy === 'unrated') {
       filtered = animes.filter(a => !a.rating)
+    }
+
+    // クールでの絞り込み
+    if (filterSeason !== 'all') {
+      filtered = filtered.filter(a => {
+        const season = a.season_name_text || a.season_name || ''
+        return season === filterSeason
+      })
     }
 
     // ソート
@@ -86,8 +152,25 @@ const Watching = () => {
     }
     // 'recent' の場合は既にAnnictから降順で取得されているのでそのまま
 
+    // 逆順ソート
+    if (reverseSort) {
+      sorted.reverse()
+    }
+
     return sorted
-  }, [animes, sortBy, filterBy])
+  }, [animes, sortBy, filterBy, filterSeason, reverseSort])
+
+  const totalPages = Math.ceil(filteredAndSortedAnimes.length / ITEMS_PER_PAGE)
+  const paginatedAnimes = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    const end = start + ITEMS_PER_PAGE
+    return filteredAndSortedAnimes.slice(start, end)
+  }, [filteredAndSortedAnimes, currentPage])
+
+  // フィルター変更時に1ページ目に戻る
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filterBy, filterSeason, sortBy, reverseSort])
 
   if (isLoading) {
     return <Loading>読み込み中...</Loading>
@@ -103,13 +186,16 @@ const Watching = () => {
         <div>
           <label htmlFor="sort">並び替え: </label>
           <Select id="sort" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortOption)}>
-            <option value="recent">放送時期順（新しい順）</option>
+            <option value="recent">放送時期順</option>
             <option value="title">タイトル順</option>
             <option value="season">クール順</option>
           </Select>
         </div>
+        <ReverseButton onClick={() => setReverseSort(!reverseSort)}>
+          {reverseSort ? '🔄 逆順' : '⬇️ 順'}
+        </ReverseButton>
         <div>
-          <label htmlFor="filter">絞り込み: </label>
+          <label htmlFor="filter">評価: </label>
           <Select id="filter" value={filterBy} onChange={(e) => setFilterBy(e.target.value as FilterOption)}>
             <option value="all">すべて</option>
             <option value="favorite">めちゃ好き</option>
@@ -117,12 +203,29 @@ const Watching = () => {
             <option value="unrated">未評価</option>
           </Select>
         </div>
-        <div style={{ marginLeft: 'auto', color: '#64748b', fontSize: '0.875rem' }}>
-          {filteredAndSortedAnimes.length}件表示中
+        <div>
+          <label htmlFor="season">クール: </label>
+          <Select id="season" value={filterSeason} onChange={(e) => setFilterSeason(e.target.value)}>
+            <option value="all">すべて</option>
+            {availableSeasons.map(season => (
+              <option key={season} value={season}>{season}</option>
+            ))}
+          </Select>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <PageButton onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+            ← 戻る
+          </PageButton>
+          <PageButton onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+            次へ →
+          </PageButton>
+          <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
+            {filteredAndSortedAnimes.length}件
+          </span>
         </div>
       </Controls>
       <Grid>
-        {filteredAndSortedAnimes?.map((anime) => (
+        {paginatedAnimes?.map((anime) => (
           <AnimeCard key={anime.id} anime={anime} />
         )) || []}
       </Grid>

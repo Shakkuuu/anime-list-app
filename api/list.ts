@@ -42,10 +42,14 @@ export default async function handler(
       const works = annictResponse.data.works || []
       allWorks = allWorks.concat(works)
 
-      // レスポンスヘッダーから次ページの有無を確認
+      // レスポンスデータとヘッダーから次ページの有無を確認
       const totalCount = parseInt(annictResponse.headers['x-total-count'] || '0')
-      hasMore = allWorks.length < totalCount && works.length === 50
+      // レスポンスヘッダーがない場合は、50件取得できた場合は次のページがあると仮定
+      hasMore = works.length === 50 && (totalCount === 0 || allWorks.length < totalCount)
       page++
+
+      // 安全のため最大100ページまでに制限
+      if (page > 100) break
     }
 
     // Supabaseから評価データ取得
