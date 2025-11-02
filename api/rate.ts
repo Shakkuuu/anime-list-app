@@ -12,8 +12,14 @@ export default async function handler(
   try {
     const { annictId, rating } = req.body
 
-    if (!annictId || (rating && !['favorite', 'recommended'].includes(rating))) {
-      return res.status(400).json({ error: 'Invalid request body' })
+    // annictIdが数値であることを検証
+    if (!annictId || typeof annictId !== 'number' || annictId < 1) {
+      return res.status(400).json({ error: 'Invalid annictId' })
+    }
+
+    // ratingが有効な値であることを検証
+    if (rating && !['favorite', 'recommended'].includes(rating)) {
+      return res.status(400).json({ error: 'Invalid rating' })
     }
 
     // JWT検証
@@ -71,7 +77,6 @@ export default async function handler(
     console.error('Error in /api/rate:', error)
     return res.status(500).json({
       error: 'Internal server error',
-      message: error.message,
     })
   }
 }

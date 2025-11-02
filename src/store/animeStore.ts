@@ -40,6 +40,10 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
       await axios.post('/api/rate', {
         annictId,
         rating,
+      }, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       })
 
       // ローカル状態を更新

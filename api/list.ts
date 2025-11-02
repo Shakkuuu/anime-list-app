@@ -12,6 +12,12 @@ export default async function handler(
 
   try {
     const { status = 'watched' } = req.query
+
+    // statusが有効な値であることを検証
+    if (status && !['watched', 'watching'].includes(status as string)) {
+      return res.status(400).json({ error: 'Invalid status' })
+    }
+
     const annictToken = process.env.ANNICT_TOKEN
     const supabaseUrl = process.env.SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
@@ -85,7 +91,6 @@ export default async function handler(
     console.error('Error in /api/list:', error)
     return res.status(500).json({
       error: 'Internal server error',
-      message: error.message,
     })
   }
 }
