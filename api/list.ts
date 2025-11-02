@@ -20,20 +20,33 @@ export default async function handler(
       return res.status(500).json({ error: 'Missing environment variables' })
     }
 
-    // Annict REST APIからデータ取得
-    const annictResponse = await axios.get(
-      `https://api.annict.com/v1/me/works`,
-      {
-        params: {
-          filter_status: status,
-          sort_season: 'desc',
-          per_page: 50,
-          access_token: annictToken,
-        },
-      }
-    )
+    // Annict REST APIから全データ取得（ページネーション対応）
+    let allWorks: any[] = []
+    let page = 1
+    let hasMore = true
 
-    const works = annictResponse.data.works || []
+    while (hasMore) {
+      const annictResponse = await axios.get(
+        `https://api.annict.com/v1/me/works`,
+        {
+          params: {
+            filter_status: status,
+            sort_season: 'desc',
+            per_page: 50,
+            page: page,
+            access_token: annictToken,
+          },
+        }
+      )
+
+      const works = annictResponse.data.works || []
+      allWorks = allWorks.concat(works)
+
+      // レスポンスヘッダーから次ページの有無を確認
+      const totalCount = parseInt(annictResponse.headers['x-total-count'] || '0')
+      hasMore = allWorks.length < totalCount && works.length === 50
+      page++
+    }
 
     // Supabaseから評価データ取得
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -46,7 +59,7 @@ export default async function handler(
     )
 
     // データをマージ
-    const animes = works.map((work: any) => ({
+    const animes = allWorks.map((work: any) => ({
       id: work.id,
       title: work.title,
       season_name: work.season_name,
