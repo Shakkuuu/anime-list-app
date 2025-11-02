@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAuthStore } from './store/authStore'
+import { useThemeStore } from './store/themeStore'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Watching from './pages/Watching'
@@ -11,9 +12,11 @@ import ServerError from './pages/ServerError'
 
 function App() {
   const { initializeAuth } = useAuthStore()
+  const { initializeTheme } = useThemeStore()
 
   useEffect(() => {
     initializeAuth()
+    initializeTheme()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

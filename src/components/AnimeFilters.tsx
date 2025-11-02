@@ -10,10 +10,12 @@ const Controls = styled.div`
 
 const Select = styled.select`
   padding: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   cursor: pointer;
+  background: var(--card-bg);
+  color: var(--text-color);
 
   &:focus {
     outline: none;
@@ -137,7 +139,7 @@ const AnimeFilters = ({
         <PageButton onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}>
           次へ →
         </PageButton>
-        <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
+        <span style={{ color: 'var(--muted-text)', fontSize: '0.875rem' }}>
           {startItem}~{endItem}件 / {totalCount}件
         </span>
       </div>

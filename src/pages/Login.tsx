@@ -11,10 +11,10 @@ const Container = styled.div`
 `
 
 const Card = styled.div`
-  background: white;
+  background: var(--card-bg);
   border-radius: 0.75rem;
   padding: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--card-shadow);
 `
 
 const Title = styled.h2`
@@ -22,6 +22,7 @@ const Title = styled.h2`
   font-weight: bold;
   margin-bottom: 1rem;
   text-align: center;
+  color: var(--text-color);
 `
 
 const Form = styled.form`
@@ -32,9 +33,11 @@ const Form = styled.form`
 
 const Input = styled.input`
   padding: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   font-size: 1rem;
+  background: var(--card-bg);
+  color: var(--text-color);
 
   &:focus {
     outline: none;
