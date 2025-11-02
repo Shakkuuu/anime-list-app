@@ -13,7 +13,7 @@ export default async function handler(
   try {
     const { status = 'watched' } = req.query
     const annictToken = process.env.ANNICT_TOKEN
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+    const supabaseUrl = process.env.SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
 
     if (!annictToken || !supabaseUrl || !supabaseServiceKey) {
