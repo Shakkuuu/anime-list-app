@@ -11,7 +11,7 @@ interface AuthState {
   isNotAdmin: boolean
   initializeAuth: () => Promise<void>
   checkAdminStatus: () => Promise<boolean>
-  login: (email: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   clearNotAdmin: () => void
 }
@@ -92,12 +92,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
+  login: async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        emailRedirectTo: window.location.origin + '/login',
-      },
+      password,
     })
     if (error) throw error
   },

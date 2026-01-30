@@ -67,14 +67,6 @@ const Button = styled.button`
   }
 `
 
-const Message = styled.div`
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  background: #10b981;
-  color: white;
-  text-align: center;
-`
-
 const Error = styled.div`
   padding: 0.75rem;
   border-radius: 0.5rem;
@@ -85,8 +77,8 @@ const Error = styled.div`
 
 const Login = () => {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const { login, isNotAdmin } = useAuthStore()
   const navigate = useNavigate()
@@ -99,15 +91,14 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setMessage('')
     setError('')
 
     try {
-      await login(email)
-      setMessage('メールアドレスにログインリンクを送信しました。リンクをクリックしてログインしてください。')
-      setTimeout(() => navigate('/'), 3000)
+      await login(email, password)
+      // ログイン成功後、管理者チェックが自動的に実行される
+      navigate('/')
     } catch (err: any) {
-      setError(err.message || 'ログインに失敗しました')
+      setError(err.message || 'ログインに失敗しました。メールアドレスとパスワードを確認してください。')
     } finally {
       setIsLoading(false)
     }
@@ -117,7 +108,6 @@ const Login = () => {
     <Container>
       <Card>
         <Title>管理者ログイン</Title>
-        {message && <Message>{message}</Message>}
         {error && <Error>{error}</Error>}
         <Form onSubmit={handleSubmit}>
           <Input
@@ -126,9 +116,18 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
+          />
+          <Input
+            type="password"
+            placeholder="パスワード"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
           />
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? '送信中...' : 'ログインリンクを送信'}
+            {isLoading ? 'ログイン中...' : 'ログイン'}
           </Button>
         </Form>
       </Card>
