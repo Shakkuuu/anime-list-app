@@ -11,7 +11,7 @@ interface AuthState {
   isNotAdmin: boolean
   initializeAuth: () => Promise<void>
   checkAdminStatus: () => Promise<boolean>
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   clearNotAdmin: () => void
 }
@@ -93,11 +93,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   login: async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) throw error
+
+    // ログイン成功後、セッションを更新
+    if (data.session?.user) {
+      set({
+        user: data.session.user,
+        isAuthenticated: true,
+      })
+
+      // 管理者チェックを実行して結果を返す
+      const store = useAuthStore.getState()
+      const isAdmin = await store.checkAdminStatus()
+      return isAdmin
+    }
+
+    return false
   },
 
   logout: async () => {

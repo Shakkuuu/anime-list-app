@@ -94,9 +94,14 @@ const Login = () => {
     setError('')
 
     try {
-      await login(email, password)
-      // ログイン成功後、管理者チェックが自動的に実行される
-      navigate('/')
+      const isAdmin = await login(email, password)
+      if (isAdmin) {
+        // 管理者チェックが成功したらリダイレクト
+        navigate('/')
+      } else {
+        // 管理者でない場合はエラーメッセージを表示
+        setError('管理者権限がありません。')
+      }
     } catch (err: any) {
       setError(err.message || 'ログインに失敗しました。メールアドレスとパスワードを確認してください。')
     } finally {
