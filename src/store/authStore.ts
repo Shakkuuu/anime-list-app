@@ -95,8 +95,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 管理者チェック成功
       set({ isAdmin: true, isNotAdmin: false })
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking admin status:', error)
+
+      // エラーの詳細をログに出力
+      if (error.response) {
+        console.error('API Error Response:', error.response.status, error.response.data)
+      } else if (error.request) {
+        console.error('API Request Error:', error.request)
+      } else {
+        console.error('Error:', error.message)
+      }
+
       // チェックエラーの場合は管理者扱いしないが、accessTokenは保持
       // （セッションが存在する場合はトークンを保持）
       const { data: { session } } = await supabase.auth.getSession()
@@ -108,32 +118,51 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // セッションが存在しない場合
         set({ isAdmin: false, accessToken: null, isNotAdmin: false })
       }
-      return false
+
+      // エラーを再スローして、呼び出し元で処理できるようにする
+      throw error
     }
   },
 
   login: async (email: string, password: string): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) throw error
-
-    // ログイン成功後、セッションを更新
-    if (data.session?.user) {
-      set({
-        user: data.session.user,
-        isAuthenticated: true,
-        accessToken: data.session.access_token,
-        isNotAdmin: false, // ログイン成功時にリセット
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
-      // 管理者チェックを実行して結果を返す
-      const isAdmin = await get().checkAdminStatus()
-      return isAdmin
-    }
+      if (error) {
+        console.error('Supabase login error:', error)
+        throw error
+      }
 
-    return false
+      // ログイン成功後、セッションを更新
+      if (data.session?.user) {
+        set({
+          user: data.session.user,
+          isAuthenticated: true,
+          accessToken: data.session.access_token,
+          isNotAdmin: false, // ログイン成功時にリセット
+        })
+
+      // 管理者チェックを実行して結果を返す
+      try {
+        const isAdmin = await get().checkAdminStatus()
+        return isAdmin
+      } catch (checkError: any) {
+        // 管理者チェックでエラーが発生した場合
+        console.error('Admin check failed after login:', checkError)
+        // セッションは保持するが、管理者ではない
+        // エラーを再スローして、Login.tsxで適切なエラーメッセージを表示できるようにする
+        throw new Error('管理者権限の確認に失敗しました。管理者テーブルにユーザーが登録されているか確認してください。')
+      }
+      }
+
+      return false
+    } catch (error: any) {
+      console.error('Login error:', error)
+      throw error
+    }
   },
 
   logout: async () => {

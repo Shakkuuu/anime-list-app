@@ -100,10 +100,23 @@ const Login = () => {
         navigate('/')
       } else {
         // 管理者でない場合はエラーメッセージを表示
-        setError('管理者権限がありません。')
+        // ログインは成功したが管理者権限がない場合
+        setError('管理者権限がありません。管理者のメールアドレスとパスワードでログインしてください。')
       }
     } catch (err: any) {
-      setError(err.message || 'ログインに失敗しました。メールアドレスとパスワードを確認してください。')
+      // Supabaseの認証エラーまたはネットワークエラー
+      console.error('Login error:', err)
+      if (err.message === 'Invalid login credentials') {
+        setError('メールアドレスまたはパスワードが正しくありません。')
+      } else if (err.response) {
+        // APIエラーの場合
+        setError(`管理者権限の確認に失敗しました: ${err.response.data?.error || err.message}`)
+      } else if (err.request) {
+        // ネットワークエラーの場合
+        setError('ネットワークエラーが発生しました。接続を確認してください。')
+      } else {
+        setError(err.message || 'ログインに失敗しました。メールアドレスとパスワードを確認してください。')
+      }
     } finally {
       setIsLoading(false)
     }
