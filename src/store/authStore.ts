@@ -91,8 +91,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return true
     } catch (error) {
       console.error('Error checking admin status:', error)
-      // チェックエラーの場合は管理者扱いしない
-      set({ isAdmin: false })
+      // チェックエラーの場合は管理者扱いしないが、accessTokenは保持
+      // （セッションが存在する場合はトークンを保持）
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        set({ isAdmin: false, accessToken: session.access_token })
+      } else {
+        set({ isAdmin: false, accessToken: null })
+      }
       return false
     }
   },

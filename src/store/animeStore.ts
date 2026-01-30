@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import axios from 'axios'
+import { supabase } from '../lib/supabase'
 import { useAuthStore } from './authStore'
 import type { Anime, AnimeStatus } from '../types'
 
@@ -34,9 +35,17 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
 
   updateRating: async (annictId: number, isFavorite: boolean, isRecommended: boolean) => {
     // authStoreからトークンを取得
-    const { accessToken } = useAuthStore.getState()
+    let { accessToken } = useAuthStore.getState()
+
+    // accessTokenが存在しない場合、セッションから直接取得を試みる
     if (!accessToken) {
-      throw new Error('Not authenticated')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session || !session.access_token) {
+        throw new Error('Not authenticated')
+      }
+      accessToken = session.access_token
+      // ストアも更新
+      useAuthStore.setState({ accessToken })
     }
 
     // 楽観的UI更新：即座にローカル状態を更新
