@@ -9,6 +9,7 @@ interface AuthState {
   isAuthenticated: boolean
   isAdmin: boolean
   isNotAdmin: boolean
+  accessToken: string | null
   initializeAuth: () => Promise<void>
   checkAdminStatus: () => Promise<boolean>
   login: (email: string, password: string) => Promise<boolean>
@@ -22,6 +23,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isAdmin: false,
   isNotAdmin: false,
+  accessToken: null,
 
   initializeAuth: async () => {
     try {
@@ -29,6 +31,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         user: session?.user || null,
         isAuthenticated: !!session?.user,
+        accessToken: session?.access_token || null,
         isLoading: false,
       })
 
@@ -42,6 +45,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           user: session?.user || null,
           isAuthenticated: !!session?.user,
+          accessToken: session?.access_token || null,
         })
 
         // セッションがある場合は管理者チェック
@@ -61,9 +65,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        set({ isAdmin: false })
+        set({ isAdmin: false, accessToken: null })
         return false
       }
+
+      // アクセストークンを更新
+      set({ accessToken: session.access_token })
 
       const response = await axios.get('/api/check-admin', {
         headers: {
@@ -76,7 +83,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 管理者でない場合はログアウト
       if (!isAdmin) {
         await supabase.auth.signOut()
-        set({ user: null, isAuthenticated: false, isAdmin: false, isNotAdmin: true })
+        set({ user: null, isAuthenticated: false, isAdmin: false, isNotAdmin: true, accessToken: null })
         return false
       }
 
@@ -102,6 +109,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         user: data.session.user,
         isAuthenticated: true,
+        accessToken: data.session.access_token,
       })
 
       // 管理者チェックを実行して結果を返す
@@ -115,7 +123,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-    set({ user: null, isAuthenticated: false, isAdmin: false, isNotAdmin: false })
+    set({ user: null, isAuthenticated: false, isAdmin: false, isNotAdmin: false, accessToken: null })
   },
 
   clearNotAdmin: () => {

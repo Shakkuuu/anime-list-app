@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import axios from 'axios'
-import { supabase } from '../lib/supabase'
+import { useAuthStore } from './authStore'
 import type { Anime, AnimeStatus } from '../types'
 
 interface AnimeState {
@@ -33,28 +33,41 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
   },
 
   updateRating: async (annictId: number, isFavorite: boolean, isRecommended: boolean) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Not authenticated')
+    // authStoreからトークンを取得
+    const { accessToken } = useAuthStore.getState()
+    if (!accessToken) {
+      throw new Error('Not authenticated')
+    }
 
+    // 楽観的UI更新：即座にローカル状態を更新
+    const currentAnimes = get().animes || []
+    const previousAnime = currentAnimes.find((anime) => anime.id === annictId)
+
+    set({
+      animes: currentAnimes.map((anime) =>
+        anime.id === annictId ? { ...anime, is_favorite: isFavorite, is_recommended: isRecommended } : anime
+      ),
+    })
+
+    try {
       await axios.post('/api/rate', {
         annictId,
         isFavorite,
         isRecommended,
       }, {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       })
-
-      // ローカル状態を更新
-      const currentAnimes = get().animes || []
-      set({
-        animes: currentAnimes.map((anime) =>
-          anime.id === annictId ? { ...anime, is_favorite: isFavorite, is_recommended: isRecommended } : anime
-        ),
-      })
     } catch (error) {
+      // エラーが発生した場合は元の状態に戻す
+      if (previousAnime) {
+        set({
+          animes: currentAnimes.map((anime) =>
+            anime.id === annictId ? previousAnime : anime
+          ),
+        })
+      }
       console.error('Error updating rating:', error)
       throw error
     }
