@@ -16,7 +16,7 @@ interface AuthState {
   clearNotAdmin: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
   isAuthenticated: false,
@@ -34,8 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // 管理者チェック（セッションがある場合）
       if (session?.user) {
-        const store = useAuthStore.getState()
-        await store.checkAdminStatus()
+        await get().checkAdminStatus()
       }
 
       // 認証状態の変更を監視
@@ -47,8 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         // セッションがある場合は管理者チェック
         if (session?.user) {
-          const store = useAuthStore.getState()
-          await store.checkAdminStatus()
+          await get().checkAdminStatus()
         } else {
           set({ isAdmin: false })
         }
@@ -59,7 +57,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  checkAdminStatus: async () => {
+  checkAdminStatus: async (): Promise<boolean> => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
@@ -92,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string): Promise<boolean> => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -107,8 +105,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
 
       // 管理者チェックを実行して結果を返す
-      const store = useAuthStore.getState()
-      const isAdmin = await store.checkAdminStatus()
+      const isAdmin = await get().checkAdminStatus()
       return isAdmin
     }
 
