@@ -33,11 +33,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: !!session?.user,
         accessToken: session?.access_token || null,
         isLoading: false,
+        isNotAdmin: false, // セッション復元時にリセット
       })
 
       // 管理者チェック（セッションがある場合）
       if (session?.user) {
         await get().checkAdminStatus()
+      } else {
+        // セッションがない場合は状態をクリア
+        set({ isAdmin: false, isNotAdmin: false })
       }
 
       // 認証状態の変更を監視
@@ -46,13 +50,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: session?.user || null,
           isAuthenticated: !!session?.user,
           accessToken: session?.access_token || null,
+          isNotAdmin: false, // セッション変更時にリセット
         })
 
         // セッションがある場合は管理者チェック
         if (session?.user) {
           await get().checkAdminStatus()
         } else {
-          set({ isAdmin: false })
+          set({ isAdmin: false, isNotAdmin: false })
         }
       })
     } catch (error) {
@@ -65,7 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        set({ isAdmin: false, accessToken: null })
+        set({ isAdmin: false, accessToken: null, isNotAdmin: false })
         return false
       }
 
@@ -87,7 +92,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false
       }
 
-      set({ isAdmin })
+      // 管理者チェック成功
+      set({ isAdmin: true, isNotAdmin: false })
       return true
     } catch (error) {
       console.error('Error checking admin status:', error)
@@ -95,9 +101,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // （セッションが存在する場合はトークンを保持）
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.access_token) {
-        set({ isAdmin: false, accessToken: session.access_token })
+        // セッションは存在するが管理者チェックに失敗した場合
+        // セッションを保持して、isNotAdminをtrueにする
+        set({ isAdmin: false, accessToken: session.access_token, isNotAdmin: true })
       } else {
-        set({ isAdmin: false, accessToken: null })
+        // セッションが存在しない場合
+        set({ isAdmin: false, accessToken: null, isNotAdmin: false })
       }
       return false
     }
@@ -116,6 +125,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: data.session.user,
         isAuthenticated: true,
         accessToken: data.session.access_token,
+        isNotAdmin: false, // ログイン成功時にリセット
       })
 
       // 管理者チェックを実行して結果を返す

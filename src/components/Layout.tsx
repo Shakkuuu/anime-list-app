@@ -111,7 +111,7 @@ const ThemeButton = styled.button`
 `
 
 const Layout = () => {
-  const { isAuthenticated, logout } = useAuthStore()
+  const { isAuthenticated, isAdmin, logout } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const location = useLocation()
 
@@ -130,7 +130,7 @@ const Layout = () => {
             <ThemeButton onClick={toggleTheme} title={theme === 'light' ? 'ダークモードに切替' : 'ライトモードに切替'}>
               {theme === 'light' ? '🌙' : '☀️'}
             </ThemeButton>
-            {isAuthenticated ? (
+            {isAuthenticated && isAdmin ? (
               <AuthInfo>
                 <span>👤 管理者でログイン済み</span>
                 <button onClick={logout}>ログアウト</button>

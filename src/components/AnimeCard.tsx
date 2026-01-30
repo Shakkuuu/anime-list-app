@@ -98,7 +98,7 @@ const RatingButton = styled.button<{ $active: boolean; $color: string }>`
 
 const AnimeCard = ({ anime }: { anime: Anime }) => {
   const { updateRating } = useAnimeStore()
-  const { isAuthenticated } = useAuthStore()
+  const { isAdmin } = useAuthStore()
   const [isUpdating, setIsUpdating] = useState(false)
   const [imageError, setImageError] = useState(false)
 
@@ -141,7 +141,7 @@ const AnimeCard = ({ anime }: { anime: Anime }) => {
       <Content>
         <Title>{anime.title}</Title>
         <Season>{anime.season_name_text || anime.season_name}</Season>
-        {isAuthenticated && (
+        {isAdmin && (
           <RatingButtons>
             <RatingButton
               $active={anime.is_favorite}
