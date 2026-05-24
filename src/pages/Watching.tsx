@@ -53,6 +53,13 @@ const Watching = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalPages = Math.ceil(filteredAndSortedAnimes.length / ITEMS_PER_PAGE)
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [totalPages, currentPage, setCurrentPage])
+
   const paginatedAnimes = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE
     const end = start + ITEMS_PER_PAGE

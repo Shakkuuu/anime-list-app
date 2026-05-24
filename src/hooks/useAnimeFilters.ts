@@ -1,15 +1,97 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { Anime } from '../types'
 
 export type SortOption = 'recent' | 'title'
 export type FilterOption = 'all' | 'favorite' | 'recommended' | 'unrated'
 
+const SORT_OPTIONS: SortOption[] = ['recent', 'title']
+const FILTER_OPTIONS: FilterOption[] = ['all', 'favorite', 'recommended', 'unrated']
+
+function parseSortParam(value: string | null): SortOption {
+  if (value && SORT_OPTIONS.includes(value as SortOption)) {
+    return value as SortOption
+  }
+  return 'recent'
+}
+
+function parseFilterParam(value: string | null): FilterOption {
+  if (value && FILTER_OPTIONS.includes(value as FilterOption)) {
+    return value as FilterOption
+  }
+  return 'all'
+}
+
+function parsePageParam(value: string | null): number {
+  const page = parseInt(value ?? '1', 10)
+  return Number.isFinite(page) && page >= 1 ? page : 1
+}
+
+type FilterState = {
+  sortBy: SortOption
+  reverseSort: boolean
+  filterBy: FilterOption
+  filterSeason: string
+  currentPage: number
+}
+
+function buildSearchParams(state: FilterState): URLSearchParams {
+  const params = new URLSearchParams()
+  if (state.sortBy !== 'recent') params.set('sort', state.sortBy)
+  if (state.reverseSort) params.set('order', 'desc')
+  if (state.filterBy !== 'all') params.set('filter', state.filterBy)
+  if (state.filterSeason !== 'all') params.set('season', state.filterSeason)
+  if (state.currentPage > 1) params.set('page', String(state.currentPage))
+  return params
+}
+
+function readFilterState(searchParams: URLSearchParams): FilterState {
+  return {
+    sortBy: parseSortParam(searchParams.get('sort')),
+    reverseSort: searchParams.get('order') === 'desc',
+    filterBy: parseFilterParam(searchParams.get('filter')),
+    filterSeason: searchParams.get('season') ?? 'all',
+    currentPage: parsePageParam(searchParams.get('page')),
+  }
+}
+
 export const useAnimeFilters = (animes: Anime[]) => {
-  const [sortBy, setSortBy] = useState<SortOption>('recent')
-  const [reverseSort, setReverseSort] = useState(false)
-  const [filterBy, setFilterBy] = useState<FilterOption>('all')
-  const [filterSeason, setFilterSeason] = useState<string>('all')
-  const [currentPage, setCurrentPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { sortBy, reverseSort, filterBy, filterSeason, currentPage } =
+    readFilterState(searchParams)
+
+  const updateState = useCallback(
+    (partial: Partial<FilterState>) => {
+      const next = { ...readFilterState(searchParams), ...partial }
+      setSearchParams(buildSearchParams(next), { replace: true })
+    },
+    [searchParams, setSearchParams],
+  )
+
+  const setSortBy = useCallback(
+    (sort: SortOption) => updateState({ sortBy: sort, currentPage: 1 }),
+    [updateState],
+  )
+
+  const setReverseSort = useCallback(
+    (reverse: boolean) => updateState({ reverseSort: reverse, currentPage: 1 }),
+    [updateState],
+  )
+
+  const setFilterBy = useCallback(
+    (filter: FilterOption) => updateState({ filterBy: filter, currentPage: 1 }),
+    [updateState],
+  )
+
+  const setFilterSeason = useCallback(
+    (season: string) => updateState({ filterSeason: season, currentPage: 1 }),
+    [updateState],
+  )
+
+  const setCurrentPage = useCallback(
+    (page: number) => updateState({ currentPage: page }),
+    [updateState],
+  )
 
   const availableSeasons = useMemo(() => {
     if (!animes || animes.length === 0) return []
@@ -56,11 +138,6 @@ export const useAnimeFilters = (animes: Anime[]) => {
     return sorted
   }, [animes, sortBy, filterBy, filterSeason, reverseSort])
 
-  // フィルター変更時に1ページ目に戻る
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filterBy, filterSeason, sortBy, reverseSort])
-
   return {
     sortBy,
     setSortBy,
@@ -76,4 +153,3 @@ export const useAnimeFilters = (animes: Anime[]) => {
     filteredAndSortedAnimes,
   }
 }
-
